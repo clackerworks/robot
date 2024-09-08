@@ -4,7 +4,7 @@
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.  
   The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 *********/
-// Motor A
+// Motor Left
 int motor1Pin1 = D0; 
 int motor1Pin2 = D1; 
 int enable1Pin = D2; 
