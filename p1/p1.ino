@@ -13,18 +13,21 @@ int motor2Pin1 = D3;
 int motor2Pin2 = D4; 
 int enable2Pin = D5; 
 
+int left_encoder = D6;
+int right_encoder = D7;
+
 // Setting PWM properties
 const int freq = 30000;
 const int pwmChannel = 0;
 const int resolution = 8;
-int dutyCycle = 200;
+int dutyCycle = 50;
 int pw = 150;
 
 void left_forward (int pw) {
   digitalWrite(motor1Pin1, LOW);
   digitalWrite(motor1Pin2, LOW); 
   analogWrite(enable1Pin, 0);
-  delay(5);
+  delay(2);
   digitalWrite(motor1Pin1, LOW);
   digitalWrite(motor1Pin2, HIGH); 
   analogWrite(enable1Pin, pw);
@@ -34,7 +37,7 @@ void left_backward (int pw) {
   digitalWrite(motor1Pin1, LOW);
   digitalWrite(motor1Pin2, LOW); 
   analogWrite(enable1Pin, 0);
-  delay(5);
+  delay(2);
   digitalWrite(motor1Pin1, HIGH);
   digitalWrite(motor1Pin2, LOW); 
   analogWrite(enable1Pin, pw);
@@ -50,7 +53,7 @@ void right_forward (int pw) {
   digitalWrite(motor2Pin1, LOW);
   digitalWrite(motor2Pin2, LOW); 
   analogWrite(enable2Pin, 0);
-  delay(5);
+  delay(2);
   digitalWrite(motor2Pin1, LOW);
   digitalWrite(motor2Pin2, HIGH); 
   analogWrite(enable2Pin, pw);
@@ -60,7 +63,7 @@ void right_backward (int pw) {
   digitalWrite(motor2Pin1, LOW);
   digitalWrite(motor2Pin2, LOW); 
   analogWrite(enable2Pin, 0);
-  delay(5);
+  delay(2);
   digitalWrite(motor2Pin1, HIGH);
   digitalWrite(motor2Pin2, LOW); 
   analogWrite(enable2Pin, pw);
@@ -75,20 +78,23 @@ void right_stop (void) {
 
 void diag_motor(void) {
   left_forward(100);
-  delay(2000);
+  delay(500);
   left_backward(100);
-  delay(2000);
+  delay(500);
   left_stop();
   delay(1000);
   right_forward(100);
-  delay(2000);
+  delay(500);
   right_backward(100);
-  delay(2000);
+  delay(500);
   right_stop();
   delay(1000);
 
   left_forward(100);
   right_forward(100);
+  delay(100);
+  left_forward(20);
+  right_forward(20);
   delay(2000);
   left_backward(100);
   right_backward(100);
@@ -106,6 +112,8 @@ void setup() {
   pinMode(motor2Pin1, OUTPUT);
   pinMode(motor2Pin2, OUTPUT);
   pinMode(enable2Pin, OUTPUT);
+  pinMode(left_encoder, INPUT);
+  pinMode(right_encoder, INPUT);
   analogWriteFreq(100);
   
   // configure LEDC PWM
