@@ -35,7 +35,7 @@ char msg[MSG_BUFFER_SIZE];
 int value = 0;
 
 
-// Motors
+// Motor global vaiables section 
 // Motor Left
 int motor1Pin1 = D0; 
 int motor1Pin2 = D1; 
@@ -56,6 +56,97 @@ int dutyCycle = 50;
 int pw = 150;
 int right_enc;
 int left_enc;
+
+//Motor functions
+void left_forward (int pw) {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW); 
+  analogWrite(enable1Pin, 0);
+  delay(2);
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, HIGH); 
+  analogWrite(enable1Pin, pw);
+}
+
+void left_backward (int pw) {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW); 
+  analogWrite(enable1Pin, 0);
+  delay(2);
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW); 
+  analogWrite(enable1Pin, pw);
+}
+
+void left_stop (void) {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW); 
+  analogWrite(enable1Pin, 0);
+}
+
+void right_forward (int pw) {
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW); 
+  analogWrite(enable2Pin, 0);
+  delay(2);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, HIGH); 
+  analogWrite(enable2Pin, pw);
+}
+
+void right_backward (int pw) {
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW); 
+  analogWrite(enable2Pin, 0);
+  delay(2);
+  digitalWrite(motor2Pin1, HIGH);
+  digitalWrite(motor2Pin2, LOW); 
+  analogWrite(enable2Pin, pw);
+}
+
+void right_stop (void) {
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW); 
+  analogWrite(enable2Pin, 0);
+}
+
+
+void diag_motor(void) {
+  left_forward(100);
+  delay(500);
+  left_backward(100);
+  delay(500);
+  left_stop();
+  delay(1000);
+  right_forward(100);
+  delay(500);
+  right_backward(100);
+  delay(500);
+  right_stop();
+  delay(1000);
+
+  left_forward(100);
+  right_forward(100);
+  delay(100);
+  left_forward(20);
+  right_forward(20);
+  delay(2000);
+  left_backward(100);
+  right_backward(100);
+  delay(2000);
+  left_stop();
+  right_stop();
+  delay(1000);
+}
+
+void ICACHE_RAM_ATTR lisr() {
+   left_enc++;
+}
+
+void ICACHE_RAM_ATTR risr() {
+   right_enc++;
+}
+
 
 
 void setup_wifi() {
@@ -132,6 +223,19 @@ void setup() {
   setup_wifi();
   client.setServer(mqtt_server, 9338);
   client.setCallback(callback);
+
+  //Motor setup
+  pinMode(motor1Pin1, OUTPUT);
+  pinMode(motor1Pin2, OUTPUT);
+  pinMode(enable1Pin, OUTPUT);
+  pinMode(motor2Pin1, OUTPUT);
+  pinMode(motor2Pin2, OUTPUT);
+  pinMode(enable2Pin, OUTPUT);
+  pinMode(left_encoder, INPUT);
+  pinMode(right_encoder, INPUT);
+  analogWriteFreq(200);
+  attachInterrupt(left_encoder, lisr, FALLING); 
+  attachInterrupt(right_encoder, risr, FALLING);
 }
 
 void loop() {
@@ -150,4 +254,5 @@ void loop() {
     Serial.println(msg);
     client.publish("outTopic", msg);
   }
+  diag_motor();
 }
