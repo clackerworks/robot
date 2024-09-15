@@ -22,6 +22,8 @@ const int pwmChannel = 0;
 const int resolution = 8;
 int dutyCycle = 50;
 int pw = 150;
+int right_enc;
+int left_enc;
 
 void left_forward (int pw) {
   digitalWrite(motor1Pin1, LOW);
@@ -104,6 +106,14 @@ void diag_motor(void) {
   delay(1000);
 }
 
+void ICACHE_RAM_ATTR lisr() {
+   left_enc++;
+}
+
+void ICACHE_RAM_ATTR risr() {
+   right_enc++;
+}
+
 void setup() {
   // sets the pins as outputs:
   pinMode(motor1Pin1, OUTPUT);
@@ -114,7 +124,9 @@ void setup() {
   pinMode(enable2Pin, OUTPUT);
   pinMode(left_encoder, INPUT);
   pinMode(right_encoder, INPUT);
-  analogWriteFreq(100);
+  analogWriteFreq(200);
+  attachInterrupt(left_encoder, lisr, FALLING); 
+  attachInterrupt(right_encoder, risr, FALLING); 
   
   // configure LEDC PWM
 //  ledcAttachChannel(enable1Pin, freq, resolution, pwmChannel);
@@ -126,6 +138,10 @@ void setup() {
 }
 
 void loop() {
+  Serial.print("test test\n");
   diag_motor();
+  Serial.print(left_enc);
+  Serial.print(" ");
+  Serial.print(right_enc);
 }
 
