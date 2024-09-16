@@ -174,6 +174,8 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
+   char msg[512];
+
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
@@ -181,6 +183,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print((char)payload[i]);
   }
   Serial.println();
+  snprintf(msg, length + 1, "%s", payload);
 
   // Switch on the LED if an 1 was received as first character
 //  if ((char)payload[0] == '1') {
@@ -190,6 +193,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
 //  } else {
 //    digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
 //  }
+    Serial.print(msg);
+    if(strcmp(msg, "left") == 0){
+    left_forward(100);
+    delay(20);
+    left_stop();
+    } else if(strcmp(msg, "right") == 0) {
+        right_forward(100);
+        delay(20);
+        right_stop();
+    } 
 
 }
 
@@ -207,6 +220,7 @@ void reconnect() {
       client.publish("outTopic", "hello world");
       // ... and resubscribe
       client.subscribe("inTopic");
+      client.subscribe("motor/command");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -236,6 +250,7 @@ void setup() {
   analogWriteFreq(200);
   attachInterrupt(left_encoder, lisr, FALLING); 
   attachInterrupt(right_encoder, risr, FALLING);
+  diag_motor(); 
 }
 
 void loop() {
@@ -253,6 +268,8 @@ void loop() {
     Serial.print("Publish message: ");
     Serial.println(msg);
     client.publish("outTopic", msg);
+    snprintf (msg, MSG_BUFFER_SIZE, "%ld,%ld", left_enc, right_enc);
+    client.publish("motor/status", msg);
   }
-  diag_motor();
+//  diag_motor();
 }
