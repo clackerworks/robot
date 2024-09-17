@@ -54,8 +54,8 @@ const int pwmChannel = 0;
 const int resolution = 8;
 int dutyCycle = 50;
 int pw = 150;
-int right_enc;
-int left_enc;
+volatile int right_enc;
+volatile int left_enc;
 
 //Motor functions
 void left_forward (int pw) {
@@ -195,12 +195,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
 //  }
     Serial.print(msg);
     if(strcmp(msg, "left") == 0){
+   int last_left_enc = left_enc;
     left_forward(100);
-    delay(20);
+//    delay(20);
+   while(left_enc < last_left_enc + 1);
     left_stop();
     } else if(strcmp(msg, "right") == 0) {
+     int last_right_enc = right_enc;
         right_forward(100);
-        delay(20);
+//        delay(20);
+     while(right_enc < last_right_enc + 1);
         right_stop();
     } 
 
@@ -268,8 +272,10 @@ void loop() {
     Serial.print("Publish message: ");
     Serial.println(msg);
     client.publish("outTopic", msg);
-    snprintf (msg, MSG_BUFFER_SIZE, "%ld,%ld", left_enc, right_enc);
-    client.publish("motor/status", msg);
+    snprintf(msg, MSG_BUFFER_SIZE, "%ld", left_enc);
+    client.publish("motor/status/left", msg);
+    snprintf (msg, MSG_BUFFER_SIZE, "%ld", right_enc);
+    client.publish("motor/status/right", msg);
   }
 //  diag_motor();
 }
