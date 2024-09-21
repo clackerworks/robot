@@ -225,13 +225,13 @@ void callback(char *topic, byte * payload, unsigned int length)
 		left_stop();
 		right_stop();
 		if (left_enc < right_enc) {
-		left_forward(100);
-		while (left_enc < right_enc)
+			left_forward(100);
+			while (left_enc < right_enc); 
 			left_stop();
 		} else if (right_enc < left_enc) {
-		right_forward(100);
-		while (right_enc < left_enc);
-		right_stop();
+			right_forward(100);
+			while (right_enc < left_enc);
+			right_stop();
 		}
 	}
 	}
