@@ -195,29 +195,11 @@ int forward(int p){
                         right_stop();
                         if (left_enc < right_enc) {
                                 left_forward(100);
-                             	j = 0; 
-				while (left_enc < right_enc){
-                                	j++;
-                                	delay(1);
-                                	if(j > 400){
-                                        	left_stop();
-                                        	right_stop();
-                                        	return(-1);
-                                	}
-                        	} 
+				if(wait_left(right_enc) == -1) return -1;
                                 left_stop();
                         } else if (right_enc < left_enc) {
                                 right_forward(100);
-                                j = 0; 
-				while (right_enc < left_enc){ 
-                                        j++;
-                                        delay(1);
-                                        if(j > 400){
-                                                left_stop();
-                                                right_stop();
-                                                return(-1);
-                                        }
-                                }
+				if(wait_right(left_enc) == -1) return -1;
                                 right_stop();
                         }
                         totalleftcount = totalleftcount + left_enc;
