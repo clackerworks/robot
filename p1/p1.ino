@@ -151,32 +151,73 @@ void diag_motor(void)
 	delay(1000);
 }
 
-void forward(int p){
+int wait_left(int l)
+{
+	int j;
+	j = 0;
+	while(left_enc < l){
+                                j++;
+                                delay(1);
+                                if(j > 200){
+                                        left_stop();
+                                        right_stop();
+                                        return(-1);
+                                }
+	}
+	return 0;
+}
+
+int wait_right(int l)
+{
+        int j;
+        j = 0;
+        while(right_enc < l){
+                                j++;
+                                delay(1);
+                                if(j > 200){
+                                        left_stop();
+                                        right_stop();
+                                        return(-1);
+                                }
+        }
+        return 0;
+}
+
+int forward(int p){
 	int j;
                 for (int i = 0; i < p; i++) {
                         left_enc = 0;
                         right_enc = 0;
                         left_forward(100);
                         right_forward(100);
-                        j = 0;
-                        while(left_enc < 1){
-                                j++;
-                                delay(1);
-                                if(j > 200){
-                                        state = 10;
-                                        break;
-                                }
-                        }
-                        left_stop();
+                        if(wait_left(1) == -1) return -1; 
+			left_stop();
                         right_stop();
-                        if(j > 200) break;
                         if (left_enc < right_enc) {
                                 left_forward(100);
-                                while (left_enc < right_enc);
+                             	j = 0; 
+				while (left_enc < right_enc){
+                                	j++;
+                                	delay(1);
+                                	if(j > 400){
+                                        	left_stop();
+                                        	right_stop();
+                                        	return(-1);
+                                	}
+                        	} 
                                 left_stop();
                         } else if (right_enc < left_enc) {
                                 right_forward(100);
-                                while (right_enc < left_enc);
+                                j = 0; 
+				while (right_enc < left_enc){ 
+                                        j++;
+                                        delay(1);
+                                        if(j > 400){
+                                                left_stop();
+                                                right_stop();
+                                                return(-1);
+                                        }
+                                }
                                 right_stop();
                         }
                         totalleftcount = totalleftcount + left_enc;
@@ -184,16 +225,81 @@ void forward(int p){
 		client.loop();
 		if(cmd[0] == 10) break;
                 }
+	return(1);
 }
 
-void left_turn(int p)
+int backward(int p){
+        int j;
+                for (int i = 0; i < p; i++) {
+                        left_enc = 0;
+                        right_enc = 0;
+                        left_backward(100);
+                        right_backward(100);
+                        j = 0;
+                        while(left_enc < 1){
+                                j++;
+                                delay(1);
+                                if(j > 200){
+                                        left_stop();
+                                        right_stop();
+                                        return(-1);
+                                }
+                        }
+                        left_stop();
+                        right_stop();
+                        if (left_enc < right_enc) {
+                                left_backward(100);
+                                j = 0;
+                                while (left_enc < right_enc){
+                                        j++;
+                                        delay(1);
+                                        if(j > 400){
+                                                left_stop();
+                                                right_stop();
+                                                return(-1);
+                                        }
+                                }
+                                left_stop();
+                        } else if (right_enc < left_enc) {
+                                right_backward(100);
+                                j = 0;
+                                while (right_enc < left_enc){
+                                        j++;
+                                        delay(1);
+                                        if(j > 400){
+                                                left_stop();
+                                                right_stop();
+                                                return(-1);
+                                        }
+                                }
+                                right_stop();
+                        }
+                        totalleftcount = totalleftcount - left_enc;
+                        totalrightcount = totalrightcount - right_enc;
+                client.loop();
+                if(cmd[0] == 10) break;
+                }
+        return(1);
+}
+
+int left_turn(int p)
 {
+	int j;
                 for (int i = 0; i < p; i++) {
                         left_enc = 0;
                         right_enc = 0;
                         left_backward(100);
                         right_forward(100);
-                        while (left_enc < 1);
+			j = 0;
+                        while(left_enc < 1){
+                                j++;
+                                delay(1);
+                                if(j > 200){
+                    			left_stop();
+					right_stop(); 
+		                   	return(-1);
+                                }
+                        }
                         left_stop();
                         right_stop();
                         if (left_enc < right_enc) {
@@ -209,16 +315,27 @@ void left_turn(int p)
                         totalrightcount = totalrightcount + right_enc;
 		client.loop();
                 }
+	return(1);
 }
 
-void right_turn(int p)
+int right_turn(int p)
 {
+	int j;
                 for (int i = 0; i < p; i++) {
                         left_enc = 0;
                         right_enc = 0;
                         left_forward(100);
                         right_backward(100);
-                        while (left_enc < 1);
+			j = 0;
+                        while(left_enc < 1){
+                                j++;
+                                delay(1);
+                                if(j > 200){
+					left_stop();
+					right_stop(); 
+                                        return(-1);
+                                }
+                        }
                         left_stop();
                         right_stop();
                         if (left_enc < right_enc) {
@@ -234,6 +351,7 @@ void right_turn(int p)
                         totalrightcount = totalrightcount - right_enc;
 		client.loop();
                 }
+	return(1);
 }
 
 
@@ -298,7 +416,11 @@ void callback(char *topic, byte * payload, unsigned int length)
                 cmd[0] = 3;
 		cmd[1] = atoi(msg);  
 		cmd[2] = 0;
-        }else if(strcmp(topic, "motor/command/break") == 0){
+        }else if(strcmp(topic, "motor/command/backward") == 0){
+		cmd[0] = 4;
+		cmd[1] = atoi(msg);
+		cmd[2] = 0;
+	}else if(strcmp(topic, "motor/command/break") == 0){
 		cmd[0] = 10;
 		cmd[1] = 0;
 		cmd[2] = 0;
@@ -321,7 +443,8 @@ void reconnect()
 		// ... and resubscribe
 		client.subscribe("inTopic");
 		client.subscribe("motor/command/forward");
-                client.subscribe("motor/command/left_turn");
+      		client.subscribe("motor/command/backward"); 
+	        client.subscribe("motor/command/left_turn");
                 client.subscribe("motor/command/right_turn");
 		client.subscribe("motor/command/break");
 	} else {
@@ -367,15 +490,19 @@ void loop()
 
 	switch(cmd[0]){
 	case 1:
-		forward(cmd[1]);
+		state = forward(cmd[1]);
 		cmd[0] = 0;
 		break;
 	case 2:
-		left_turn(cmd[1]);
+		state = left_turn(cmd[1]);
 		cmd[0] = 0;
 		break;
 	case 3:
-		right_turn(cmd[1]);
+		state = right_turn(cmd[1]);
+		cmd[0] = 0;
+		break;
+	case 4:
+		state = backward(cmd[1]);
 		cmd[0] = 0;
 		break;
 	}
