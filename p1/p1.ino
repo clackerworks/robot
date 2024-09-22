@@ -198,15 +198,26 @@ void callback(char *topic, byte * payload, unsigned int length)
 	snprintf(msg, length + 1, "%s", payload);
 
 	if(strcmp(topic, "motor/command/forward") == 0){
+		int j; 
 		p = atoi(msg);
 		for (int i = 0; i < p; i++) {
                 	left_enc = 0;
                 	right_enc = 0;
                 	left_forward(100);
                 	right_forward(100);
-                	while (left_enc < 1);
+			j = 0;
+			while(left_enc < 1){
+				j++; 
+				delay(1);
+				if(j > 200){
+					client.publish("motor/status", "blocked");
+					//publish
+					break;
+				}
+			}
                 	left_stop();
                 	right_stop();
+			if(j > 200) break;
                 	if (left_enc < right_enc) {
                         	left_forward(100);
                         	while (left_enc < right_enc); 
