@@ -58,6 +58,9 @@ volatile int right_enc;
 volatile int left_enc;
 int totalleftcount = 0;
 int totalrightcount = 0;
+int state = 0;
+int cmd[3];
+
 
 //Motor functions
 void left_forward(int pw)
@@ -148,6 +151,92 @@ void diag_motor(void)
 	delay(1000);
 }
 
+void forward(int p){
+	int j;
+                for (int i = 0; i < p; i++) {
+                        left_enc = 0;
+                        right_enc = 0;
+                        left_forward(100);
+                        right_forward(100);
+                        j = 0;
+                        while(left_enc < 1){
+                                j++;
+                                delay(1);
+                                if(j > 200){
+                                        state = 10;
+                                        break;
+                                }
+                        }
+                        left_stop();
+                        right_stop();
+                        if(j > 200) break;
+                        if (left_enc < right_enc) {
+                                left_forward(100);
+                                while (left_enc < right_enc);
+                                left_stop();
+                        } else if (right_enc < left_enc) {
+                                right_forward(100);
+                                while (right_enc < left_enc);
+                                right_stop();
+                        }
+                        totalleftcount = totalleftcount + left_enc;
+                        totalrightcount = totalrightcount + right_enc;
+		client.loop();
+		if(cmd[0] == 10) break;
+                }
+}
+
+void left_turn(int p)
+{
+                for (int i = 0; i < p; i++) {
+                        left_enc = 0;
+                        right_enc = 0;
+                        left_backward(100);
+                        right_forward(100);
+                        while (left_enc < 1);
+                        left_stop();
+                        right_stop();
+                        if (left_enc < right_enc) {
+                                left_backward(100);
+                                while (left_enc < right_enc);
+                                left_stop();
+                        } else if (right_enc < left_enc) {
+                                right_forward(100);
+                                while (right_enc < left_enc);
+                                right_stop();
+                        }
+                        totalleftcount = totalleftcount - left_enc;
+                        totalrightcount = totalrightcount + right_enc;
+		client.loop();
+                }
+}
+
+void right_turn(int p)
+{
+                for (int i = 0; i < p; i++) {
+                        left_enc = 0;
+                        right_enc = 0;
+                        left_forward(100);
+                        right_backward(100);
+                        while (left_enc < 1);
+                        left_stop();
+                        right_stop();
+                        if (left_enc < right_enc) {
+                                left_forward(100);
+                                while (left_enc < right_enc);
+                                left_stop();
+                        } else if (right_enc < left_enc) {
+                                right_backward(100);
+                                while (right_enc < left_enc);
+                                right_stop();
+                        }
+                        totalleftcount = totalleftcount + left_enc;
+                        totalrightcount = totalrightcount - right_enc;
+		client.loop();
+                }
+}
+
+
 void ICACHE_RAM_ATTR lisr()
 {
 	left_enc++;
@@ -198,83 +287,22 @@ void callback(char *topic, byte * payload, unsigned int length)
 	snprintf(msg, length + 1, "%s", payload);
 
 	if(strcmp(topic, "motor/command/forward") == 0){
-		int j; 
-		p = atoi(msg);
-		for (int i = 0; i < p; i++) {
-                	left_enc = 0;
-                	right_enc = 0;
-                	left_forward(100);
-                	right_forward(100);
-			j = 0;
-			while(left_enc < 1){
-				j++; 
-				delay(1);
-				if(j > 200){
-					client.publish("motor/status", "blocked");
-					//publish
-					break;
-				}
-			}
-                	left_stop();
-                	right_stop();
-			if(j > 200) break;
-                	if (left_enc < right_enc) {
-                        	left_forward(100);
-                        	while (left_enc < right_enc); 
-                        	left_stop();
-                	} else if (right_enc < left_enc) {
-                        	right_forward(100);
-                        	while (right_enc < left_enc);
-                        	right_stop();
-                	}
-			totalleftcount = totalleftcount + left_enc;
-			totalrightcount = totalrightcount + right_enc; 
-        	}
+		cmd[0] = 1;
+		cmd[1] = atoi(msg); 
+		cmd[2] = 0;
         }else if(strcmp(topic, "motor/command/left_turn") == 0){
-                p = atoi(msg);
-                for (int i = 0; i < p; i++) {
-                        left_enc = 0;
-                        right_enc = 0;
-                        left_backward(100);
-                        right_forward(100);
-                        while (left_enc < 1);
-                        left_stop();
-                        right_stop();
-                        if (left_enc < right_enc) {
-                                left_backward(100);
-                                while (left_enc < right_enc);
-                                left_stop();
-                        } else if (right_enc < left_enc) {
-                                right_forward(100);
-                                while (right_enc < left_enc);
-                                right_stop();
-                        }  
-			totalleftcount = totalleftcount - left_enc;
-			totalrightcount = totalrightcount + right_enc; 
-                }
+       		cmd[0] = 2; 
+	        cmd[1] = atoi(msg);
+		cmd[2] = 0;
         }else if(strcmp(topic, "motor/command/right_turn") == 0){
-                p = atoi(msg);
-                for (int i = 0; i < p; i++) {
-                        left_enc = 0;
-                        right_enc = 0;
-                        left_forward(100);
-                        right_backward(100);
-                        while (left_enc < 1);
-                        left_stop();
-                        right_stop();
-                        if (left_enc < right_enc) {
-                                left_forward(100);
-                                while (left_enc < right_enc);
-                                left_stop();
-                        } else if (right_enc < left_enc) {
-                                right_backward(100);
-                                while (right_enc < left_enc);
-                                right_stop();
-                        }  
-			totalleftcount = totalleftcount + left_enc;
-			totalrightcount = totalrightcount - right_enc; 
-                }
-        }
+                cmd[0] = 3;
+		cmd[1] = atoi(msg);  
+		cmd[2] = 0;
+        }else if(strcmp(topic, "motor/command/break") == 0){
+		cmd[0] = 10;
+		cmd[1] = 0;
+		cmd[2] = 0;
+	}
 }
 
 void reconnect()
@@ -295,6 +323,7 @@ void reconnect()
 		client.subscribe("motor/command/forward");
                 client.subscribe("motor/command/left_turn");
                 client.subscribe("motor/command/right_turn");
+		client.subscribe("motor/command/break");
 	} else {
 		Serial.print("failed, rc=");
 		Serial.print(client.state());
@@ -325,6 +354,7 @@ void setup()
 	attachInterrupt(left_encoder, lisr, FALLING);
 	attachInterrupt(right_encoder, risr, FALLING);
 	diag_motor();
+	state = 1;
 }
 
 void loop()
@@ -334,6 +364,21 @@ void loop()
 	reconnect();
 	}
 	client.loop();
+
+	switch(cmd[0]){
+	case 1:
+		forward(cmd[1]);
+		cmd[0] = 0;
+		break;
+	case 2:
+		left_turn(cmd[1]);
+		cmd[0] = 0;
+		break;
+	case 3:
+		right_turn(cmd[1]);
+		cmd[0] = 0;
+		break;
+	}
 
 	unsigned long now = millis();
 	if (now - lastMsg > 2000) {
@@ -347,5 +392,7 @@ void loop()
 	client.publish("motor/status/left_encoder", msg);
 	snprintf(msg, MSG_BUFFER_SIZE, "%ld", totalrightcount);
 	client.publish("motor/status/right_encoder", msg);
+	snprintf(msg, MSG_BUFFER_SIZE, "state: %ld", state);
+	client.publish("motor/status", msg);
 	}
 }
