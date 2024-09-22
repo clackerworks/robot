@@ -184,6 +184,7 @@ void setup_wifi()
 void callback(char *topic, byte * payload, unsigned int length)
 {
 	char msg[512];
+	int p;
 
 	Serial.print("Message arrived [");
 	Serial.print(topic);
@@ -202,6 +203,67 @@ void callback(char *topic, byte * payload, unsigned int length)
 //  } else {
 //	digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
 //  }
+	if(strcmp(topic, "motor/command/forward") == 0){
+		p = atoi(msg);
+		for (int i = 0; i < p; i++) {
+                	left_enc = 0;
+                	right_enc = 0;
+                	left_forward(100);
+                	right_forward(100);
+                	while (left_enc < 1);
+                	left_stop();
+                	right_stop();
+                	if (left_enc < right_enc) {
+                        	left_forward(100);
+                        	while (left_enc < right_enc); 
+                        	left_stop();
+                	} else if (right_enc < left_enc) {
+                        	right_forward(100);
+                        	while (right_enc < left_enc);
+                        	right_stop();
+                	}
+        	}
+        }else if(strcmp(topic, "motor/command/left_turn") == 0){
+                p = atoi(msg);
+                for (int i = 0; i < p; i++) {
+                        left_enc = 0;
+                        right_enc = 0;
+                        left_backward(100);
+                        right_forward(100);
+                        while (left_enc < 1);
+                        left_stop();
+                        right_stop();
+                        if (left_enc < right_enc) {
+                                left_backward(100);
+                                while (left_enc < right_enc);
+                                left_stop();
+                        } else if (right_enc < left_enc) {
+                                right_forward(100);
+                                while (right_enc < left_enc);
+                                right_stop();
+                        }
+                }
+        }else if(strcmp(topic, "motor/command/right_turn") == 0){
+                p = atoi(msg);
+                for (int i = 0; i < p; i++) {
+                        left_enc = 0;
+                        right_enc = 0;
+                        left_forward(100);
+                        right_backward(100);
+                        while (left_enc < 1);
+                        left_stop();
+                        right_stop();
+                        if (left_enc < right_enc) {
+                                left_forward(100);
+                                while (left_enc < right_enc);
+                                left_stop();
+                        } else if (right_enc < left_enc) {
+                                right_backward(100);
+                                while (right_enc < left_enc);
+                                right_stop();
+                        }
+                }
+        }
 	Serial.print(msg);
 	if (strcmp(msg, "left") == 0) {
 	left_enc = 0;
@@ -252,7 +314,9 @@ void reconnect()
 		client.publish("outTopic", "hello world");
 		// ... and resubscribe
 		client.subscribe("inTopic");
-		client.subscribe("motor/command");
+		client.subscribe("motor/command/forward");
+                client.subscribe("motor/command/left_turn");
+                client.subscribe("motor/command/right_turn");
 	} else {
 		Serial.print("failed, rc=");
 		Serial.print(client.state());
