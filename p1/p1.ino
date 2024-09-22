@@ -56,6 +56,8 @@ int dutyCycle = 50;
 int pw = 150;
 volatile int right_enc;
 volatile int left_enc;
+int totalleftcount = 0;
+int totalrightcount = 0;
 
 //Motor functions
 void left_forward(int pw)
@@ -195,14 +197,6 @@ void callback(char *topic, byte * payload, unsigned int length)
 	Serial.println();
 	snprintf(msg, length + 1, "%s", payload);
 
-	// Switch on the LED if an 1 was received as first character
-//  if ((char)payload[0] == '1') {
-//	digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
-//	// but actually the LED is on; this is because
-//	// it is active low on the ESP-01)
-//  } else {
-//	digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
-//  }
 	if(strcmp(topic, "motor/command/forward") == 0){
 		p = atoi(msg);
 		for (int i = 0; i < p; i++) {
@@ -222,6 +216,8 @@ void callback(char *topic, byte * payload, unsigned int length)
                         	while (right_enc < left_enc);
                         	right_stop();
                 	}
+			totalleftcount = totalleftcount + left_enc;
+			totalrightcount = totalrightcount + right_enc; 
         	}
         }else if(strcmp(topic, "motor/command/left_turn") == 0){
                 p = atoi(msg);
@@ -241,7 +237,9 @@ void callback(char *topic, byte * payload, unsigned int length)
                                 right_forward(100);
                                 while (right_enc < left_enc);
                                 right_stop();
-                        }
+                        }  
+			totalleftcount = totalleftcount - left_enc;
+			totalrightcount = totalrightcount + right_enc; 
                 }
         }else if(strcmp(topic, "motor/command/right_turn") == 0){
                 p = atoi(msg);
@@ -261,42 +259,11 @@ void callback(char *topic, byte * payload, unsigned int length)
                                 right_backward(100);
                                 while (right_enc < left_enc);
                                 right_stop();
-                        }
+                        }  
+			totalleftcount = totalleftcount + left_enc;
+			totalrightcount = totalrightcount - right_enc; 
                 }
         }
-	Serial.print(msg);
-	if (strcmp(msg, "left") == 0) {
-	left_enc = 0;
-	left_forward(100);
-//	delay(20);
-	while (left_enc < 1);
-	left_stop();
-	} else if (strcmp(msg, "right") == 0) {
-	right_enc = 0;
-	right_forward(100);
-//	    delay(20);
-	while (right_enc < 1);
-	right_stop();
-	} else if (strcmp(msg, "forward") == 0) {
-	for (int i = 0; i < 20; i++) {
-		left_enc = 0;
-		right_enc = 0;
-		left_forward(100);
-		right_forward(100);
-		while (left_enc < 1);
-		left_stop();
-		right_stop();
-		if (left_enc < right_enc) {
-			left_forward(100);
-			while (left_enc < right_enc); 
-			left_stop();
-		} else if (right_enc < left_enc) {
-			right_forward(100);
-			while (right_enc < left_enc);
-			right_stop();
-		}
-	}
-	}
 }
 
 void reconnect()
@@ -365,9 +332,9 @@ void loop()
 	Serial.print("Publish message: ");
 	Serial.println(msg);
 	client.publish("outTopic", msg);
-	snprintf(msg, MSG_BUFFER_SIZE, "%ld", left_enc);
-	client.publish("motor/status/left", msg);
-	snprintf(msg, MSG_BUFFER_SIZE, "%ld", right_enc);
-	client.publish("motor/status/right", msg);
+	snprintf(msg, MSG_BUFFER_SIZE, "%ld", totalleftcount);
+	client.publish("motor/status/left_encoder", msg);
+	snprintf(msg, MSG_BUFFER_SIZE, "%ld", totalrightcount);
+	client.publish("motor/status/right_encoder", msg);
 	}
 }
