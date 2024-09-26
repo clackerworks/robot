@@ -124,6 +124,46 @@ void reconnect() {
   }
 }
 
+void listNetworks() {
+	String ssid;
+	unsigned char* b;
+	char bssid[32];
+	float rssi;
+	char t[512];
+  // scan for nearby networks:
+  Serial.println("** Scan Networks **");
+  int numSsid = WiFi.scanNetworks();
+  if (numSsid == -1) {
+    Serial.println("Couldn't get a WiFi connection");
+  }
+
+  // print the list of networks seen:
+  Serial.print("number of available networks:");
+  Serial.println(numSsid);
+
+  // print the network number and name for each network found:
+  for (int thisNet = 0; thisNet < numSsid; thisNet++) {
+//    Serial.print(thisNet);
+//    Serial.print(") ");
+    Serial.print(WiFi.SSID(thisNet));
+//    Serial.print("\tSignal: ");
+//    Serial.print(WiFi.RSSI(thisNet));
+//    Serial.print(" dBm");
+//    Serial.print("\tEncryption: ");
+//    printEncryptionType(WiFi.encryptionType(thisNet));
+	ssid = WiFi.SSID(thisNet);
+	b = WiFi.BSSID(thisNet);
+	snprintf(bssid, 32, "%02x:%02x:%02x:%02x:%02x:%02x", b[0], b[1], b[2], b[3], b[4], b[5]);
+	rssi = WiFi.RSSI(thisNet);
+        snprintf(msg, MSG_BUFFER_SIZE, "%s %f", bssid, rssi);
+	delay(5);
+	snprintf(t, 512, "sensor/rssi/%s", bssid);
+	snprintf(msg, MSG_BUFFER_SIZE, "%f", rssi);
+        client.publish(t, msg);
+  }
+}
+
+
 void setup() {
   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
@@ -137,7 +177,6 @@ void setup() {
   if (!sensor.init())
   {
     Serial.println("Failed to detect and initialize sensor!");
-    while (1) {}
   }
 
 #if defined LONG_RANGE
@@ -178,8 +217,9 @@ void loop() {
     Serial.print("Publish message: ");
     Serial.println(msg);
     client.publish("outTopic", msg);
-	rssi_bootes = WiFi.RSSI();
-	snprintf (msg, MSG_BUFFER_SIZE, "rssi bootes: %f", rssi_bootes);
-	client.publish("outTopic", msg);
+//	rssi_bootes = WiFi.RSSI();
+//	snprintf (msg, MSG_BUFFER_SIZE, "rssi bootes: %f", rssi_bootes);
+//	client.publish("outTopic", msg);
+	listNetworks();
   }
 }
