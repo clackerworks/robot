@@ -56,93 +56,96 @@ unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
 
-void setup_wifi() {
+void setup_wifi()
+{
 
-  delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
+    delay(10);
+    // We start by connecting to a WiFi network
+    Serial.println();
+    Serial.print("Connecting to ");
+    Serial.println(ssid);
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  randomSeed(micros());
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-}
-
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-
-  // Switch on the LED if an 1 was received as first character
-  if ((char)payload[0] == '1') {
-    digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
-    // but actually the LED is on; this is because
-    // it is active low on the ESP-01)
-  } else {
-    digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
-  }
-
-}
-
-void reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Create a random client ID
-    String clientId = "ESP8266Client-";
-    clientId += String(random(0xffff), HEX);
-    // Attempt to connect
-        if (client.connect(clientId.c_str(), "testuser", "testuser")) {
-      Serial.println("connected");
-      // Once connected, publish an announcement...
-      client.publish("outTopic", "hello world");
-      // ... and resubscribe
-      client.subscribe("inTopic");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
+    while (WiFi.status() != WL_CONNECTED) {
+	delay(500);
+	Serial.print(".");
     }
-  }
+
+    randomSeed(micros());
+
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
 }
 
-void listNetworks() {
-	String ssid;
-	unsigned char* b;
-	char bssid[32];
-	float rssi;
-	char t[512];
-  // scan for nearby networks:
-//  Serial.println("** Scan Networks **");
-  int numSsid = WiFi.scanNetworks();
-  if (numSsid == -1) {
-    Serial.println("Couldn't get a WiFi connection");
-  }
+void callback(char *topic, byte * payload, unsigned int length)
+{
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    for (int i = 0; i < length; i++) {
+	Serial.print((char) payload[i]);
+    }
+    Serial.println();
 
-  // print the list of networks seen:
+    // Switch on the LED if an 1 was received as first character
+    if ((char) payload[0] == '1') {
+	digitalWrite(BUILTIN_LED, LOW);	// Turn the LED on (Note that LOW is the voltage level
+	// but actually the LED is on; this is because
+	// it is active low on the ESP-01)
+    } else {
+	digitalWrite(BUILTIN_LED, HIGH);	// Turn the LED off by making the voltage HIGH
+    }
+
+}
+
+void reconnect()
+{
+    // Loop until we're reconnected
+    while (!client.connected()) {
+	Serial.print("Attempting MQTT connection...");
+	// Create a random client ID
+	String clientId = "ESP8266Client-";
+	clientId += String(random(0xffff), HEX);
+	// Attempt to connect
+	if (client.connect(clientId.c_str(), "testuser", "testuser")) {
+	    Serial.println("connected");
+	    // Once connected, publish an announcement...
+	    client.publish("outTopic", "hello world");
+	    // ... and resubscribe
+	    client.subscribe("inTopic");
+	} else {
+	    Serial.print("failed, rc=");
+	    Serial.print(client.state());
+	    Serial.println(" try again in 5 seconds");
+	    // Wait 5 seconds before retrying
+	    delay(5000);
+	}
+    }
+}
+
+void listNetworks()
+{
+    String ssid;
+    unsigned char *b;
+    char bssid[32];
+    float rssi;
+    char t[512];
+    // scan for nearby networks:
+//  Serial.println("** Scan Networks **");
+    int numSsid = WiFi.scanNetworks();
+    if (numSsid == -1) {
+	Serial.println("Couldn't get a WiFi connection");
+    }
+    // print the list of networks seen:
 //  Serial.print("number of available networks:");
 //  Serial.println(numSsid);
 
-  // print the network number and name for each network found:
-  for (int thisNet = 0; thisNet < numSsid; thisNet++) {
+    // print the network number and name for each network found:
+    for (int thisNet = 0; thisNet < numSsid; thisNet++) {
 //    Serial.print(thisNet);
 //    Serial.print(") ");
 //    Serial.print(WiFi.SSID(thisNet));
@@ -153,73 +156,75 @@ void listNetworks() {
 //    printEncryptionType(WiFi.encryptionType(thisNet));
 	ssid = WiFi.SSID(thisNet);
 	b = WiFi.BSSID(thisNet);
-	snprintf(bssid, 32, "%02x:%02x:%02x:%02x:%02x:%02x", b[0], b[1], b[2], b[3], b[4], b[5]);
+	snprintf(bssid, 32, "%02x:%02x:%02x:%02x:%02x:%02x", b[0], b[1],
+		 b[2], b[3], b[4], b[5]);
 	rssi = WiFi.RSSI(thisNet);
-        snprintf(msg, MSG_BUFFER_SIZE, "%s %f", bssid, rssi);
+	snprintf(msg, MSG_BUFFER_SIZE, "%s %f", bssid, rssi);
 	delay(5);
 	snprintf(t, 512, "sensor/rssi/%s", bssid);
 	snprintf(msg, MSG_BUFFER_SIZE, "%f", rssi);
-        client.publish(t, msg);
-  }
+	client.publish(t, msg);
+    }
 }
 
 
-void setup() {
+void setup()
+{
 //  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
-  Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, 9338);
-  client.setCallback(callback);
+    Serial.begin(115200);
+    setup_wifi();
+    client.setServer(mqtt_server, 9338);
+    client.setCallback(callback);
 
-  Wire.begin();
+    Wire.begin();
 
-  sensor.setTimeout(500);
-  if (!sensor.init())
-  {
-    Serial.println("Failed to detect and initialize sensor!");
-  }
-
+    sensor.setTimeout(500);
+    if (!sensor.init()) {
+	Serial.println("Failed to detect and initialize sensor!");
+    }
 #if defined LONG_RANGE
-  // lower the return signal rate limit (default is 0.25 MCPS)
-  sensor.setSignalRateLimit(0.1);
-  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-  sensor.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-  sensor.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+    // lower the return signal rate limit (default is 0.25 MCPS)
+    sensor.setSignalRateLimit(0.1);
+    // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+    sensor.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+    sensor.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
 #endif
 
 #if defined HIGH_SPEED
-  // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor.setMeasurementTimingBudget(20000);
+    // reduce timing budget to 20 ms (default is about 33 ms)
+    sensor.setMeasurementTimingBudget(20000);
 #elif defined HIGH_ACCURACY
-  // increase timing budget to 200 ms
-  sensor.setMeasurementTimingBudget(200000);
+    // increase timing budget to 200 ms
+    sensor.setMeasurementTimingBudget(200000);
 #endif
 }
 
-void loop() {
-	int range;
-	float rssi_bootes;
+void loop()
+{
+    int range;
+    float rssi_bootes;
 
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
+    if (!client.connected()) {
+	reconnect();
+    }
+    client.loop();
 
-  unsigned long now = millis();
-  if (now - lastMsg > 5000) {
-    lastMsg = now;
-    ++value;
+    unsigned long now = millis();
+    if (now - lastMsg > 5000) {
+	lastMsg = now;
+	++value;
 	range = sensor.readRangeSingleMillimeters();
-        if(sensor.timeoutOccurred()) range = -1;
-		snprintf (msg, MSG_BUFFER_SIZE, "%ld", range);
-		client.publish("sensor/proximity/distance/front", msg);
-    snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
+	if (sensor.timeoutOccurred())
+	    range = -1;
+	snprintf(msg, MSG_BUFFER_SIZE, "%ld", range);
+	client.publish("sensor/proximity/distance/front", msg);
+	snprintf(msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
 //    Serial.print("Publish message: ");
 //    Serial.println(msg);
-    client.publish("outTopic", msg);
-//	rssi_bootes = WiFi.RSSI();
-//	snprintf (msg, MSG_BUFFER_SIZE, "rssi bootes: %f", rssi_bootes);
-//	client.publish("outTopic", msg);
+	client.publish("outTopic", msg);
+//      rssi_bootes = WiFi.RSSI();
+//      snprintf (msg, MSG_BUFFER_SIZE, "rssi bootes: %f", rssi_bootes);
+//      client.publish("outTopic", msg);
 	listNetworks();
-  }
+    }
 }
