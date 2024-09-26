@@ -30,7 +30,7 @@
 // other than the intended target. It works best in dark
 // conditions.
 
-#define LONG_RANGE
+//#define LONG_RANGE
 
 
 // Uncomment ONE of these two lines to get
@@ -131,15 +131,15 @@ void listNetworks() {
 	float rssi;
 	char t[512];
   // scan for nearby networks:
-  Serial.println("** Scan Networks **");
+//  Serial.println("** Scan Networks **");
   int numSsid = WiFi.scanNetworks();
   if (numSsid == -1) {
     Serial.println("Couldn't get a WiFi connection");
   }
 
   // print the list of networks seen:
-  Serial.print("number of available networks:");
-  Serial.println(numSsid);
+//  Serial.print("number of available networks:");
+//  Serial.println(numSsid);
 
   // print the network number and name for each network found:
   for (int thisNet = 0; thisNet < numSsid; thisNet++) {
@@ -165,7 +165,7 @@ void listNetworks() {
 
 
 void setup() {
-  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+//  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
   setup_wifi();
   client.setServer(mqtt_server, 9338);
@@ -214,8 +214,8 @@ void loop() {
 		snprintf (msg, MSG_BUFFER_SIZE, "%ld", range);
 		client.publish("sensor/proximity/distance/front", msg);
     snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
+//    Serial.print("Publish message: ");
+//    Serial.println(msg);
     client.publish("outTopic", msg);
 //	rssi_bootes = WiFi.RSSI();
 //	snprintf (msg, MSG_BUFFER_SIZE, "rssi bootes: %f", rssi_bootes);
