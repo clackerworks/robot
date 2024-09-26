@@ -30,7 +30,7 @@
 // other than the intended target. It works best in dark
 // conditions.
 
-//#define LONG_RANGE
+#define LONG_RANGE
 
 
 // Uncomment ONE of these two lines to get
@@ -145,7 +145,7 @@ void listNetworks() {
   for (int thisNet = 0; thisNet < numSsid; thisNet++) {
 //    Serial.print(thisNet);
 //    Serial.print(") ");
-    Serial.print(WiFi.SSID(thisNet));
+//    Serial.print(WiFi.SSID(thisNet));
 //    Serial.print("\tSignal: ");
 //    Serial.print(WiFi.RSSI(thisNet));
 //    Serial.print(" dBm");
@@ -206,13 +206,13 @@ void loop() {
   client.loop();
 
   unsigned long now = millis();
-  if (now - lastMsg > 2000) {
+  if (now - lastMsg > 5000) {
     lastMsg = now;
     ++value;
 	range = sensor.readRangeSingleMillimeters();
         if(sensor.timeoutOccurred()) range = -1;
-		snprintf (msg, MSG_BUFFER_SIZE, "range: #%ld", range);
-		client.publish("outTopic", msg);
+		snprintf (msg, MSG_BUFFER_SIZE, "%ld", range);
+		client.publish("sensor/proximity/distance/front", msg);
     snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
     Serial.print("Publish message: ");
     Serial.println(msg);
