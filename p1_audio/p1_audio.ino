@@ -38,7 +38,7 @@
 // - higher accuracy at the cost of lower speed
 
 //#define HIGH_SPEED
-//#define HIGH_ACCURACY
+#define HIGH_ACCURACY
 
 
 VL53L0X sensor;
@@ -127,7 +127,7 @@ void reconnect()
     }
 }
 
-void listNetworks()
+void listnetworks()
 {
     String ssid;
     unsigned char *b;
@@ -225,6 +225,6 @@ void loop()
 //      rssi_bootes = WiFi.RSSI();
 //      snprintf (msg, MSG_BUFFER_SIZE, "rssi bootes: %f", rssi_bootes);
 //      client.publish("outTopic", msg);
-	listNetworks();
+	listnetworks();
     }
 }
