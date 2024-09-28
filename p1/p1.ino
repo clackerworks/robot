@@ -156,139 +156,139 @@ int wait_left(int l)
 	int j;
 	j = 0;
 	while(left_enc < l){
-                                j++;
-                                delay(1);
-                                if(j > 200){
-                                        left_stop();
-                                        right_stop();
-                                        return(-1);
-                                }
+		j++;
+		delay(1);
+		if(j > 200){
+			left_stop();
+			right_stop();
+			return(-1);
+		}
 	}
 	return 0;
 }
 
 int wait_right(int l)
 {
-        int j;
-        j = 0;
-        while(right_enc < l){
-                                j++;
-                                delay(1);
-                                if(j > 200){
-                                        left_stop();
-                                        right_stop();
-                                        return(-1);
-                                }
-        }
-        return 0;
+	int j;
+	j = 0;
+	while(right_enc < l){
+		j++;
+		delay(1);
+		if(j > 200){
+			left_stop();
+			right_stop();
+			return(-1);
+		}
+	}
+	return 0;
 }
 
 int forward(int p){
 	int j;
-                for (int i = 0; i < p; i++) {
-                        left_enc = 0;
-                        right_enc = 0;
-                        left_forward(100);
-                        right_forward(100);
-                        if(wait_left(1) == -1) return -1; 
+	for (int i = 0; i < p; i++) {
+		left_enc = 0;
+		right_enc = 0;
+		left_forward(100);
+		right_forward(100);
+		if(wait_left(1) == -1) return -1;
+		left_stop();
+		right_stop();
+		if (left_enc < right_enc) {
+			left_forward(100);
+			if(wait_left(right_enc) == -1) return -1;
 			left_stop();
-                        right_stop();
-                        if (left_enc < right_enc) {
-                                left_forward(100);
-				if(wait_left(right_enc) == -1) return -1;
-                                left_stop();
-                        } else if (right_enc < left_enc) {
-                                right_forward(100);
-				if(wait_right(left_enc) == -1) return -1;
-                                right_stop();
-                        }
-                        totalleftcount = totalleftcount + left_enc;
-                        totalrightcount = totalrightcount + right_enc;
+		} else if (right_enc < left_enc) {
+			right_forward(100);
+			if(wait_right(left_enc) == -1) return -1;
+			right_stop();
+		}
+		totalleftcount = totalleftcount + left_enc;
+		totalrightcount = totalrightcount + right_enc;
 		client.loop();
 		if(cmd[0] == 10) break;
-                }
+	}
 	return(1);
 }
 
 int backward(int p){
-        int j;
-                for (int i = 0; i < p; i++) {
-                        left_enc = 0;
-                        right_enc = 0;
-                        left_backward(100);
-                        right_backward(100);
-			if(wait_left(1) == -1) return -1;
-                        left_stop();
-                        right_stop();
-                        if (left_enc < right_enc) {
-                                left_backward(100);
-				if(wait_left(right_enc) == -1) return -1;
-                                left_stop();
-                        } else if (right_enc < left_enc) {
-                                right_backward(100);
-				if(wait_right(left_enc) == -1) return -1;
-                                right_stop();
-                        }
-                        totalleftcount = totalleftcount - left_enc;
-                        totalrightcount = totalrightcount - right_enc;
-                client.loop();
-                if(cmd[0] == 10) break;
-                }
-        return(1);
+	int j;
+	for (int i = 0; i < p; i++) {
+		left_enc = 0;
+		right_enc = 0;
+		left_backward(100);
+		right_backward(100);
+		if(wait_left(1) == -1) return -1;
+		left_stop();
+		right_stop();
+		if (left_enc < right_enc) {
+			left_backward(100);
+			if(wait_left(right_enc) == -1) return -1;
+			left_stop();
+		} else if (right_enc < left_enc) {
+			right_backward(100);
+			if(wait_right(left_enc) == -1) return -1;
+			right_stop();
+		}
+		totalleftcount = totalleftcount - left_enc;
+		totalrightcount = totalrightcount - right_enc;
+		client.loop();
+		if(cmd[0] == 10) break;
+	}
+	return(1);
 }
 
 int left_turn(int p)
 {
 	int j;
-                for (int i = 0; i < p; i++) {
-                        left_enc = 0;
-                        right_enc = 0;
-                        left_backward(100);
-                        right_forward(100);
-			if(wait_left(1) == -1) return -1;
-                        left_stop();
-                        right_stop();
-                        if (left_enc < right_enc) {
-                                left_backward(100);
-				if(wait_left(right_enc) == -1) return -1;
-                                left_stop();
-                        } else if (right_enc < left_enc) {
-                                right_forward(100);
-                                if(wait_right(left_enc) == -1) return -1; 
-                                right_stop();
-                        }
-                        totalleftcount = totalleftcount - left_enc;
-                        totalrightcount = totalrightcount + right_enc;
+	for (int i = 0; i < p; i++) {
+		left_enc = 0;
+		right_enc = 0;
+		left_backward(100);
+		right_forward(100);
+		if(wait_left(1) == -1) return -1;
+		left_stop();
+		right_stop();
+		if (left_enc < right_enc) {
+			left_backward(100);
+			if(wait_left(right_enc) == -1) return -1;
+			left_stop();
+		} else if (right_enc < left_enc) {
+			right_forward(100);
+			if(wait_right(left_enc) == -1) return -1;
+			right_stop();
+		}
+		totalleftcount = totalleftcount - left_enc;
+		totalrightcount = totalrightcount + right_enc;
 		client.loop();
-                }
+	}
 	return(1);
 }
 
 int right_turn(int p)
 {
 	int j;
-                for (int i = 0; i < p; i++) {
-                        left_enc = 0;
-                        right_enc = 0;
-                        left_forward(100);
-                        right_backward(100);
-			if(wait_left(1) == -1) return -1;
-                        left_stop();
-                        right_stop();
-			if (left_enc < right_enc) {
-                                left_forward(100);
-                       		if(wait_left(right_enc) == -1) return -1; 
-			        while (left_enc < right_enc);
-                                left_stop();
-                        } else if (right_enc < left_enc) {
-                                right_backward(100);
-				if(wait_right(left_enc) == -1) return -1;
-                                right_stop();
-                        }
-                        totalleftcount = totalleftcount + left_enc;
-                        totalrightcount = totalrightcount - right_enc;
+	for (int i = 0; i < p; i++) {
+		left_enc = 0;
+		right_enc = 0;
+		left_forward(100);
+		right_backward(100);
+		if(wait_left(1) == -1) return -1;
+		left_stop();
+		right_stop();
+		if (left_enc < right_enc) {
+			left_forward(100);
+			if(wait_left(right_enc) == -1) return -1;
+			while (left_enc < right_enc);
+			left_stop();
+		} else if (right_enc < left_enc) {
+			right_backward(100);
+			if(wait_right(left_enc) == -1) return -1;
+			right_stop();
+		}
+		totalleftcount = totalleftcount + left_enc;
+		totalrightcount = totalrightcount - right_enc;
 		client.loop();
-                }
+	}
 	return(1);
 }
 
@@ -316,8 +316,8 @@ void setup_wifi()
 	WiFi.begin(ssid, password);
 
 	while (WiFi.status() != WL_CONNECTED) {
-	delay(500);
-	Serial.print(".");
+		delay(500);
+		Serial.print(".");
 	}
 
 	randomSeed(micros());
@@ -337,28 +337,28 @@ void callback(char *topic, byte * payload, unsigned int length)
 	Serial.print(topic);
 	Serial.print("] ");
 	for (int i = 0; i < length; i++) {
-	Serial.print((char) payload[i]);
+		Serial.print((char) payload[i]);
 	}
 	Serial.println();
 	snprintf(msg, length + 1, "%s", payload);
 
 	if(strcmp(topic, "motor/command/forward") == 0){
 		cmd[0] = 1;
-		cmd[1] = atoi(msg); 
+		cmd[1] = atoi(msg);
 		cmd[2] = 0;
-        }else if(strcmp(topic, "motor/command/left_turn") == 0){
-       		cmd[0] = 2; 
-	        cmd[1] = atoi(msg);
+	} else if(strcmp(topic, "motor/command/left_turn") == 0){
+		cmd[0] = 2;
+		cmd[1] = atoi(msg);
 		cmd[2] = 0;
-        }else if(strcmp(topic, "motor/command/right_turn") == 0){
-                cmd[0] = 3;
-		cmd[1] = atoi(msg);  
+	} else if(strcmp(topic, "motor/command/right_turn") == 0){
+		cmd[0] = 3;
+		cmd[1] = atoi(msg);
 		cmd[2] = 0;
-        }else if(strcmp(topic, "motor/command/backward") == 0){
+	} else if(strcmp(topic, "motor/command/backward") == 0){
 		cmd[0] = 4;
 		cmd[1] = atoi(msg);
 		cmd[2] = 0;
-	}else if(strcmp(topic, "motor/command/break") == 0){
+	} else if(strcmp(topic, "motor/command/break") == 0){
 		cmd[0] = 10;
 		cmd[1] = 0;
 		cmd[2] = 0;
@@ -369,29 +369,29 @@ void reconnect()
 {
 	// Loop until we're reconnected
 	while (!client.connected()) {
-	Serial.print("Attempting MQTT connection...");
-	// Create a random client ID
-	String clientId = "ESP8266Client-";
-	clientId += String(random(0xffff), HEX);
-	// Attempt to connect
-	if (client.connect(clientId.c_str(), "testuser", "testuser")) {
-		Serial.println("connected");
-		// Once connected, publish an announcement...
-		client.publish("outTopic", "hello world");
-		// ... and resubscribe
-		client.subscribe("inTopic");
-		client.subscribe("motor/command/forward");
-      		client.subscribe("motor/command/backward"); 
-	        client.subscribe("motor/command/left_turn");
-                client.subscribe("motor/command/right_turn");
-		client.subscribe("motor/command/break");
-	} else {
-		Serial.print("failed, rc=");
-		Serial.print(client.state());
-		Serial.println(" try again in 5 seconds");
-		// Wait 5 seconds before retrying
-		delay(5000);
-	}
+		Serial.print("Attempting MQTT connection...");
+		// Create a random client ID
+		String clientId = "ESP8266Client-";
+		clientId += String(random(0xffff), HEX);
+		// Attempt to connect
+		if (client.connect(clientId.c_str(), "testuser", "testuser")) {
+			Serial.println("connected");
+			// Once connected, publish an announcement...
+			client.publish("outTopic", "hello world");
+			// ... and resubscribe
+			client.subscribe("inTopic");
+			client.subscribe("motor/command/forward");
+			client.subscribe("motor/command/backward");
+			client.subscribe("motor/command/left_turn");
+			client.subscribe("motor/command/right_turn");
+			client.subscribe("motor/command/break");
+		} else {
+			Serial.print("failed, rc=");
+			Serial.print(client.state());
+			Serial.println(" try again in 5 seconds");
+			// Wait 5 seconds before retrying
+			delay(5000);
+		}
 	}
 }
 
@@ -422,7 +422,7 @@ void loop()
 {
 
 	if (!client.connected()) {
-	reconnect();
+		reconnect();
 	}
 	client.loop();
 
@@ -447,17 +447,17 @@ void loop()
 
 	unsigned long now = millis();
 	if (now - lastMsg > 2000) {
-	lastMsg = now;
-	++value;
-	snprintf(msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
-	Serial.print("Publish message: ");
-	Serial.println(msg);
-	client.publish("outTopic", msg);
-	snprintf(msg, MSG_BUFFER_SIZE, "%ld", totalleftcount);
-	client.publish("motor/status/left_encoder", msg);
-	snprintf(msg, MSG_BUFFER_SIZE, "%ld", totalrightcount);
-	client.publish("motor/status/right_encoder", msg);
-	snprintf(msg, MSG_BUFFER_SIZE, "state: %ld", state);
-	client.publish("motor/status", msg);
+		lastMsg = now;
+		++value;
+		snprintf(msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
+		Serial.print("Publish message: ");
+		Serial.println(msg);
+		client.publish("outTopic", msg);
+		snprintf(msg, MSG_BUFFER_SIZE, "%ld", totalleftcount);
+		client.publish("motor/status/left_encoder", msg);
+		snprintf(msg, MSG_BUFFER_SIZE, "%ld", totalrightcount);
+		client.publish("motor/status/right_encoder", msg);
+		snprintf(msg, MSG_BUFFER_SIZE, "state: %ld", state);
+		client.publish("motor/status", msg);
 	}
 }
