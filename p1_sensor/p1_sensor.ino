@@ -47,11 +47,11 @@ VL53L0X sensor;
 
 const char *ssid = "BOOTES3348";
 const char *password = "625116A131551";
-const char *mqtt_server = "x22.ddns.net";
+const char *mqttserver = "x22.ddns.net";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-unsigned long lastMsg = 0;
+unsigned long lastmsg = 0;
 #define MSG_BUFFER_SIZE	(50)
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
@@ -65,7 +65,7 @@ void ICACHE_RAM_ATTR fallisr()
 	client.publish("outTopic", "fall");
 }
 
-void setup_wifi()
+void setupwifi()
 {
 
     delay(10);
@@ -198,8 +198,8 @@ void setup()
 {
 //  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
     Serial.begin(115200);
-    setup_wifi();
-    client.setServer(mqtt_server, 9338);
+    setupwifi();
+    client.setServer(mqttserver, 9338);
     client.setCallback(callback);
 
 	pinMode(fallpin, INPUT);
@@ -231,7 +231,7 @@ void setup()
 void loop()
 {
     int range;
-    float rssi_bootes;
+//    float rssi_bootes;
 
     if (!client.connected()) {
 	reconnect();
@@ -254,8 +254,8 @@ void loop()
 	}
 
     unsigned long now = millis();
-    if (now - lastMsg > 5000) {
-	lastMsg = now;
+    if (now - lastmsg > 5000) {
+	lastmsg = now;
 	++value;
 //	range = sensor.readRangeSingleMillimeters();
 //	if (sensor.timeoutOccurred())
