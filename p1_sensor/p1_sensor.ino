@@ -55,6 +55,15 @@ unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE	(50)
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
+int alarmfall = 0;
+int cmd[3];
+
+int fallpin = D8;
+
+void ICACHE_RAM_ATTR fallisr()
+{
+	client.publish("outTopic", "fall");
+}
 
 void setup_wifi()
 {
@@ -83,6 +92,8 @@ void setup_wifi()
 
 void callback(char *topic, byte * payload, unsigned int length)
 {
+	char msg[512];
+
     Serial.print("Message arrived [");
     Serial.print(topic);
     Serial.print("] ");
@@ -90,6 +101,19 @@ void callback(char *topic, byte * payload, unsigned int length)
 	Serial.print((char) payload[i]);
     }
     Serial.println();
+
+	snprintf(msg, length + 1, "%s", payload);
+
+	if(strcmp(topic, "sensor/proximity/distance/front/request") == 0){
+		cmd[0] = 1;
+		cmd[1] = atoi(msg);
+		cmd[2] = 0;
+	} else if(strcmp(topic, "sensor/rssi/request") == 0){
+		cmd[0] = 2;
+		cmd[1] = atoi(msg);
+		cmd[2] = 0;
+	}
+
 
     // Switch on the LED if an 1 was received as first character
     if ((char) payload[0] == '1') {
@@ -117,6 +141,8 @@ void reconnect()
 	    client.publish("outTopic", "hello world");
 	    // ... and resubscribe
 	    client.subscribe("inTopic");
+		client.subscribe("sensor/proximity/distance/front/request");
+		client.subscribe("sensor/rssi/request");
 	} else {
 	    Serial.print("failed, rc=");
 	    Serial.print(client.state());
@@ -176,6 +202,8 @@ void setup()
     client.setServer(mqtt_server, 9338);
     client.setCallback(callback);
 
+	pinMode(fallpin, INPUT);
+
     Wire.begin();
 
     sensor.setTimeout(500);
@@ -197,6 +225,7 @@ void setup()
     // increase timing budget to 200 ms
     sensor.setMeasurementTimingBudget(200000);
 #endif
+	attachInterrupt(fallpin, fallisr, CHANGE);
 }
 
 void loop()
@@ -209,15 +238,30 @@ void loop()
     }
     client.loop();
 
+	switch(cmd[0]){
+	case 1:
+		range = sensor.readRangeSingleMillimeters();
+		if (sensor.timeoutOccurred())
+	    range = -1;
+		snprintf(msg, MSG_BUFFER_SIZE, "%ld", range);
+		client.publish("sensor/proximity/distance/front", msg);
+		cmd[0] = 0;
+		break;
+	case 2:
+		listnetworks();
+		cmd[0] = 0;
+		break;
+	}
+
     unsigned long now = millis();
     if (now - lastMsg > 5000) {
 	lastMsg = now;
 	++value;
-	range = sensor.readRangeSingleMillimeters();
-	if (sensor.timeoutOccurred())
-	    range = -1;
-	snprintf(msg, MSG_BUFFER_SIZE, "%ld", range);
-	client.publish("sensor/proximity/distance/front", msg);
+//	range = sensor.readRangeSingleMillimeters();
+//	if (sensor.timeoutOccurred())
+//	    range = -1;
+//	snprintf(msg, MSG_BUFFER_SIZE, "%ld", range);
+//	client.publish("sensor/proximity/distance/front", msg);
 	snprintf(msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
 //    Serial.print("Publish message: ");
 //    Serial.println(msg);
@@ -225,6 +269,6 @@ void loop()
 //      rssi_bootes = WiFi.RSSI();
 //      snprintf (msg, MSG_BUFFER_SIZE, "rssi bootes: %f", rssi_bootes);
 //      client.publish("outTopic", msg);
-	listnetworks();
+//	listnetworks();
     }
 }
