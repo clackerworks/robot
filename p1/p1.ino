@@ -25,11 +25,11 @@
 
 const char *ssid = "BOOTES3348";
 const char *password = "625116A131551";
-const char *mqtt_server = "x22.ddns.net";
+const char *mqttserver = "x22.ddns.net";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-unsigned long lastMsg = 0;
+unsigned long lastmsg = 0;
 #define MSG_BUFFER_SIZE	(50)
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
@@ -303,7 +303,7 @@ void ICACHE_RAM_ATTR risr()
 	right_enc++;
 }
 
-void setup_wifi()
+void setupwifi()
 {
 
 	delay(10);
@@ -398,8 +398,8 @@ void reconnect()
 void setup()
 {
 	Serial.begin(115200);
-	setup_wifi();
-	client.setServer(mqtt_server, 9338);
+	setupwifi();
+	client.setServer(mqttserver, 9338);
 	client.setCallback(callback);
 
 	//Motor setup
@@ -446,8 +446,8 @@ void loop()
 	}
 
 	unsigned long now = millis();
-	if (now - lastMsg > 2000) {
-		lastMsg = now;
+	if (now - lastmsg > 2000) {
+		lastmsg = now;
 		++value;
 		snprintf(msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
 		Serial.print("Publish message: ");
